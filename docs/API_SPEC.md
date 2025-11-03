@@ -67,30 +67,75 @@ Wearther API는 실시간 날씨 정보와 온도별 옷차림 추천을 통합�
   ],
   "outfit": {
     "mainLevelKey": "LEVEL_5",
-    "innerWear": [],
-    "topWear": [
-      "긴소매 티셔츠",
-      "셔츠/블라우스",
-      "맨투맨",
-      "후드 티셔츠",
-      "니트/스웨터"
-    ],
-    "bottomWear": [
-      "면바지",
-      "슬랙스",
-      "데님 팬츠",
-      "카고 팬츠"
-    ],
-    "outerWear": [
-      "가디건",
-      "바람막이",
-      "블루종",
-      "블레이저",
-      "트러커 자켓",
-      "가죽 자켓",
-      "플리스 자켓"
-    ],
-    "accessories": []
+    "outfitByLevel": {
+      "LEVEL_4": {
+        "temperatureRange": "12°C ~ 16°C",
+        "innerWear": [],
+        "topWear": [
+          "긴소매 티셔츠",
+          "셔츠/블라우스",
+          "맨투맨",
+          "후드 티셔츠",
+          "니트/스웨터"
+        ],
+        "bottomWear": [
+          "면바지",
+          "슬랙스",
+          "데님 팬츠",
+          "카고 팬츠"
+        ],
+        "outerWear": [
+          "가디건",
+          "블레이저",
+          "트러커 자켓",
+          "가죽 자켓",
+          "블루종",
+          "플리스 자켓"
+        ],
+        "accessories": []
+      },
+      "LEVEL_5": {
+        "temperatureRange": "17°C ~ 19°C",
+        "innerWear": [],
+        "topWear": [
+          "긴소매 티셔츠",
+          "셔츠/블라우스",
+          "맨투맨",
+          "후드 티셔츠",
+          "니트/스웨터"
+        ],
+        "bottomWear": [
+          "면바지",
+          "슬랙스",
+          "데님 팬츠",
+          "카고 팬츠"
+        ],
+        "outerWear": [
+          "가디건",
+          "바람막이",
+          "블루종"
+        ],
+        "accessories": []
+      },
+      "LEVEL_6": {
+        "temperatureRange": "20°C ~ 22°C",
+        "innerWear": [],
+        "topWear": [
+          "긴소매 티셔츠",
+          "셔츠/블라우스",
+          "맨투맨",
+          "후드 티셔츠"
+        ],
+        "bottomWear": [
+          "면바지",
+          "슬랙스",
+          "데님 팬츠",
+          "카고 팬츠"
+        ],
+        "outerWear": [],
+        "accessories": []
+      }
+    }
   }
 }
 ```
@@ -116,11 +161,14 @@ Wearther API는 실시간 날씨 정보와 온도별 옷차림 추천을 통합�
 | `hourlyForecasts[].weatherIcon` | String | 날씨 아이콘 코드 |
 | `outfit` | Object | 옷차림 추천 정보 |
 | `outfit.mainLevelKey` | String | 가장 빈번한 온도 레벨 (LEVEL_1~LEVEL_8) |
-| `outfit.innerWear` | Array\<String\> | 추천 이너웨어 목록 |
-| `outfit.topWear` | Array\<String\> | 추천 상의 목록 |
-| `outfit.bottomWear` | Array\<String\> | 추천 하의 목록 |
-| `outfit.outerWear` | Array\<String\> | 추천 아우터 목록 |
-| `outfit.accessories` | Array\<String\> | 추천 악세서리 목록 |
+| `outfit.outfitByLevel` | Object | 레벨별 옷차림 정보 |
+| `outfit.outfitByLevel.{LEVEL}` | Object | 특정 레벨의 옷차림 정보 |
+| `outfit.outfitByLevel.{LEVEL}.temperatureRange` | String | 해당 레벨의 온도 범위 |
+| `outfit.outfitByLevel.{LEVEL}.innerWear` | Array\<String\> | 추천 이너웨어 목록 |
+| `outfit.outfitByLevel.{LEVEL}.topWear` | Array\<String\> | 추천 상의 목록 |
+| `outfit.outfitByLevel.{LEVEL}.bottomWear` | Array\<String\> | 추천 하의 목록 |
+| `outfit.outfitByLevel.{LEVEL}.outerWear` | Array\<String\> | 추천 아우터 목록 |
+| `outfit.outfitByLevel.{LEVEL}.accessories` | Array\<String\> | 추천 악세서리 목록 |
 
 #### 에러 응답
 
@@ -181,12 +229,16 @@ Wearther API는 실시간 날씨 정보와 온도별 옷차림 추천을 통합�
 
 ### 추천 로직
 
-1. **12시간 내 최저/최고 온도 범위**에 해당하는 모든 레벨의 옷을 통합하여 제공
-2. **가장 빈번하게 나타나는 온도 레벨**을 `mainLevelKey`로 표시 (참고용)
+1. **12시간 내 최저/최고 온도 범위**에 해당하는 각 레벨의 옷차림을 레벨별로 구분하여 제공
+2. **각 레벨**은 온도 범위와 함께 해당 레벨의 옷차림 카테고리(상의, 하의, 아우터, 악세서리)를 포함
+3. **가장 빈번하게 나타나는 온도 레벨**을 `mainLevelKey`로 표시 (참고용)
 
-예시: 15°C → 17°C → 20°C → 18°C 예상 시
-- LEVEL_4(16-12°C), LEVEL_5(19-17°C), LEVEL_6(22-20°C)의 옷을 모두 제공
-- mainLevelKey는 "LEVEL_5" (17°C, 18°C가 가장 빈번)
+예시: 12°C → 15°C → 18°C → 17°C 예상 시
+- `outfitByLevel`에 LEVEL_4, LEVEL_5, LEVEL_6을 각각 구분하여 제공
+  - LEVEL_4: 12°C~16°C 범위의 옷차림
+  - LEVEL_5: 17°C~19°C 범위의 옷차림
+  - LEVEL_6: 20°C~22°C 범위의 옷차림
+- mainLevelKey는 "LEVEL_5" (15°C, 17°C, 18°C가 LEVEL_5에 가장 많이 분포)
 
 ---
 
@@ -253,4 +305,5 @@ WeatherOutfitResponse response = restTemplate.getForObject(url, WeatherOutfitRes
 
 | 버전 | 날짜 | 변경 내용 |
 |------|------|----------|
+| v1.1 | 2025-01-03 | 옷차림 응답 구조 변경 - 레벨별 구분 제공 (outfitByLevel) |
 | v1.0 | 2025-01-03 | 초기 버전 작성 - GET /api/v1/weather-outfit 엔드포인트 |
