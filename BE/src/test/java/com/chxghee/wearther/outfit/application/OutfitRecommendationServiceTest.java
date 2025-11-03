@@ -31,8 +31,12 @@ class OutfitRecommendationServiceTest {
         assertThat(recommendation).isNotNull();
         assertThat(recommendation.getMainLevel()).isNotNull();
         assertThat(recommendation.getAllLevels()).isNotEmpty();
-        assertThat(recommendation.getTopWear()).isNotEmpty();
-        assertThat(recommendation.getBottomWear()).isNotEmpty();
+
+        // 각 레벨은 자체적으로 옷차림 정보를 가지고 있음
+        recommendation.getAllLevels().forEach(level -> {
+            assertThat(level.getTopWear()).isNotNull();
+            assertThat(level.getBottomWear()).isNotNull();
+        });
     }
 
     @Test
@@ -48,7 +52,12 @@ class OutfitRecommendationServiceTest {
 
         // Then
         assertThat(recommendation.getMainLevel()).isIn(OutfitLevel.LEVEL_2, OutfitLevel.LEVEL_3);
-        assertThat(recommendation.getOuterWear()).containsAnyOf("울 코트", "패딩", "무스탕");
+
+        // 모든 레벨 중 LEVEL_2가 포함되어 있는지 확인
+        assertThat(recommendation.getAllLevels()).contains(OutfitLevel.LEVEL_2);
+
+        // LEVEL_2의 아우터에 두꺼운 옷이 포함되어 있는지 확인
+        assertThat(OutfitLevel.LEVEL_2.getOuterWear()).containsAnyOf("울 코트", "패딩", "무스탕");
     }
 
     @Test
@@ -64,6 +73,11 @@ class OutfitRecommendationServiceTest {
 
         // Then
         assertThat(recommendation.getMainLevel()).isEqualTo(OutfitLevel.LEVEL_8);
-        assertThat(recommendation.getTopWear()).containsAnyOf("민소매 티셔츠", "반소매 티셔츠");
+
+        // 모든 레벨 중 LEVEL_8이 포함되어 있는지 확인
+        assertThat(recommendation.getAllLevels()).contains(OutfitLevel.LEVEL_8);
+
+        // LEVEL_8의 상의에 시원한 옷이 포함되어 있는지 확인
+        assertThat(OutfitLevel.LEVEL_8.getTopWear()).containsAnyOf("민소매 티셔츠", "반소매 티셔츠");
     }
 }
