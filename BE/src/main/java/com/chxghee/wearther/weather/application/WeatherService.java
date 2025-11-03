@@ -75,13 +75,23 @@ public class WeatherService {
                 hourlyTemperatures
         );
 
+        // 각 레벨을 OutfitLevelDto로 변환하여 Map 생성
+        java.util.Map<String, OutfitLevelDto> outfitByLevel = outfitRecommendation.getAllLevels().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        level -> level.name(),
+                        level -> new OutfitLevelDto(
+                                formatTemperatureRange(level),
+                                level.getInnerWear(),
+                                level.getTopWear(),
+                                level.getBottomWear(),
+                                level.getOuterWear(),
+                                level.getAccessories()
+                        )
+                ));
+
         OutfitDto outfit = new OutfitDto(
                 outfitRecommendation.getMainLevel().name(),
-                outfitRecommendation.getInnerWear(),
-                outfitRecommendation.getTopWear(),
-                outfitRecommendation.getBottomWear(),
-                outfitRecommendation.getOuterWear(),
-                outfitRecommendation.getAccessories()
+                outfitByLevel
         );
 
         return new WeatherOutfitResponse(currentWeather, weatherSummary, hourlyForecasts, outfit);
@@ -122,6 +132,23 @@ public class WeatherService {
             return "오전과 오후 기온차가 있어요. 겉옷을 챙기세요.";
         } else {
             return "쾌적한 날씨예요.";
+        }
+    }
+
+    /**
+     * 온도 레벨의 범위를 문자열로 포맷팅
+     */
+    private String formatTemperatureRange(com.chxghee.wearther.outfit.domain.OutfitLevel level) {
+        int minTemp = level.getMinTemp();
+        int maxTemp = level.getMaxTemp();
+
+        // 특수 케이스 처리
+        if (minTemp == Integer.MIN_VALUE) {
+            return maxTemp + "°C 이하";
+        } else if (maxTemp == Integer.MAX_VALUE) {
+            return minTemp + "°C 이상";
+        } else {
+            return minTemp + "°C ~ " + maxTemp + "°C";
         }
     }
 

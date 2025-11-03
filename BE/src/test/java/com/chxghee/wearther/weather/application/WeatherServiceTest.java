@@ -84,7 +84,18 @@ class WeatherServiceTest {
         assertThat(response.weatherSummary().minTemperature()).isEqualTo(15.0);
         assertThat(response.weatherSummary().maxTemperature()).isEqualTo(20.0);
         assertThat(response.hourlyForecasts()).hasSize(8);
+
+        // 옷차림 추천 검증 (레벨별 구분)
         assertThat(response.outfit()).isNotNull();
+        assertThat(response.outfit().mainLevelKey()).isEqualTo("LEVEL_5");
+        assertThat(response.outfit().outfitByLevel()).isNotNull();
+        assertThat(response.outfit().outfitByLevel()).hasSize(3);
+        assertThat(response.outfit().outfitByLevel()).containsKeys("LEVEL_4", "LEVEL_5", "LEVEL_6");
+
+        // 각 레벨의 temperatureRange 검증
+        assertThat(response.outfit().outfitByLevel().get("LEVEL_4").temperatureRange()).isEqualTo("12°C ~ 16°C");
+        assertThat(response.outfit().outfitByLevel().get("LEVEL_5").temperatureRange()).isEqualTo("17°C ~ 19°C");
+        assertThat(response.outfit().outfitByLevel().get("LEVEL_6").temperatureRange()).isEqualTo("20°C ~ 22°C");
     }
 
     private ForecastItemDto createForecastItem(double temp, String weatherMain, String description, String icon) {

@@ -1,16 +1,13 @@
 package com.chxghee.wearther.weather.presentation.dto;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * 옷차림 추천 정보
+ * 레벨별로 구분된 옷차림 정보를 제공
  */
 public record OutfitDto(
         String mainLevelKey,
-        List<String> innerWear,
-        List<String> topWear,
-        List<String> bottomWear,
-        List<String> outerWear,
-        List<String> accessories
+        Map<String, OutfitLevelDto> outfitByLevel
 ) {
 }
