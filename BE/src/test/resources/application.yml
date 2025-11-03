@@ -1,0 +1,3 @@
+external:
+  openweather:
+    api-key: test-api-key
