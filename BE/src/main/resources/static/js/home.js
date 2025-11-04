@@ -111,6 +111,11 @@ function renderOutfitRecommendations(outfit) {
 
     container.innerHTML = '';
 
+    // 디버깅: mainLevelKey 확인
+    console.log('=== 옷차림 추천 디버깅 ===');
+    console.log('mainLevelKey:', outfit.mainLevelKey);
+    console.log('outfitByLevel keys:', Object.keys(outfit.outfitByLevel));
+
     // 레벨 키를 순서대로 정렬 (LEVEL_1이 가장 추운 날씨)
     const sortedLevels = Object.keys(outfit.outfitByLevel).sort((a, b) => {
         const numA = parseInt(a.replace('LEVEL_', ''));
@@ -118,9 +123,14 @@ function renderOutfitRecommendations(outfit) {
         return numB - numA; // 내림차순 (높은 레벨부터)
     });
 
-    sortedLevels.forEach(levelKey => {
+    console.log('sortedLevels:', sortedLevels);
+
+    sortedLevels.forEach((levelKey, index) => {
         const levelData = outfit.outfitByLevel[levelKey];
         const isMainLevel = levelKey === outfit.mainLevelKey;
+
+        // 디버깅: 각 레벨의 mainLevel 여부 확인
+        console.log(`[${index}] ${levelKey}: isMainLevel = ${isMainLevel} (온도: ${levelData.temperatureRange})`);
 
         const outfitCard = document.createElement('div');
         outfitCard.className = `outfit-card ${isMainLevel ? 'main-level' : ''}`;
