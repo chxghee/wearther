@@ -11,6 +11,9 @@ import com.chxghee.wearther.weather.presentation.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -53,15 +56,29 @@ public class WeatherService {
         List<ForecastItemDto> next12Hours = next24Hours.subList(0, Math.min(4, next24Hours.size()));
         WeatherSummaryDto weatherSummary = createWeatherSummary(next12Hours);
 
-        // 6. 시간대별 예보 (24시간, 3시간 간격)
+        // 6. 시간대별 예보 (24시간, 3시간 간격) - timezone을 사용하여 현지 시간으로 변환
+        int timezoneOffset = weatherResponse.city().timezone();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
         List<HourlyForecastDto> hourlyForecasts = next24Hours.stream()
-                .map(forecast -> new HourlyForecastDto(
-                        forecast.dateTimeText(),
-                        forecast.main().temp(),
-                        forecast.weather().get(0).main(),
-                        forecast.weather().get(0).description(),
-                        forecast.weather().get(0).icon()
-                ))
+                .map(forecast -> {
+                    // dt(Unix timestamp) + timezone으로 현지 시간 계산
+                    long localTimestamp = forecast.timestamp() + timezoneOffset;
+                    LocalDateTime localDateTime = LocalDateTime.ofEpochSecond(
+                            localTimestamp,
+                            0,
+                            ZoneOffset.UTC
+                    );
+                    String localDateTimeStr = localDateTime.format(formatter);
+
+                    return new HourlyForecastDto(
+                            localDateTimeStr,
+                            forecast.main().temp(),
+                            forecast.weather().get(0).main(),
+                            forecast.weather().get(0).description(),
+                            forecast.weather().get(0).icon()
+                    );
+                })
                 .toList();
 
         // 7. 옷차림 추천
