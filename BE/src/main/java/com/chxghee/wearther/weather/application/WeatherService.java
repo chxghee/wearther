@@ -37,30 +37,48 @@ public class WeatherService {
         // 1. Geocoding: 도시 이름 -> 좌표 변환
         CityData cityData = geoCodingClient.getCoordinatesByCityName(cityName);
 
-        // 2. OpenWeatherMap: 날씨 예보 조회 (5일, 3시간 간격)
+        // 2-1. OpenWeatherMap: 현재 날씨 조회
+        com.chxghee.wearther.weather.infrastructure.openweathermap.dto.CurrentWeatherResponse currentWeatherResponse =
+                openWeatherClient.getCurrentWeather(cityData.lat(), cityData.lon());
+
+        // 2-2. OpenWeatherMap: 날씨 예보 조회 (5일, 3시간 간격)
         OpenWeatherResponse weatherResponse = openWeatherClient.getForecast(cityData.lat(), cityData.lon());
 
         // 3. 24시간(8개) 예보 데이터 추출
         List<ForecastItemDto> next24Hours = weatherResponse.list().subList(0, Math.min(8, weatherResponse.list().size()));
 
-        // 4. 현재 날씨 (첫 번째 예보)
-        ForecastItemDto currentForecast = next24Hours.get(0);
+        // 4. 현재 날씨 (Current Weather API 데이터 사용)
         CurrentWeatherDto currentWeather = new CurrentWeatherDto(
-                currentForecast.main().temp(),
-                currentForecast.weather().get(0).main(),
-                currentForecast.weather().get(0).description(),
-                currentForecast.weather().get(0).icon()
+                currentWeatherResponse.main().temp(),
+                currentWeatherResponse.weather().get(0).main(),
+                currentWeatherResponse.weather().get(0).description(),
+                currentWeatherResponse.weather().get(0).icon()
         );
 
-        // 5. 12시간 날씨 요약 (최저/최고 온도, 코멘트)
+        // 5. 12시간 날씨 요약 (최저/최고 온도, 코멘트) - 현재 날씨 포함
         List<ForecastItemDto> next12Hours = next24Hours.subList(0, Math.min(4, next24Hours.size()));
-        WeatherSummaryDto weatherSummary = createWeatherSummary(next12Hours);
+        WeatherSummaryDto weatherSummary = createWeatherSummary(next12Hours, currentWeatherResponse.main().temp());
 
         // 6. 시간대별 예보 (24시간, 3시간 간격) - timezone을 사용하여 현지 시간으로 변환
-        int timezoneOffset = weatherResponse.city().timezone();
+        int timezoneOffset = currentWeatherResponse.timezone();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        List<HourlyForecastDto> hourlyForecasts = next24Hours.stream()
+        // 6-1. 현재 날씨를 HourlyForecastDto로 변환
+        LocalDateTime currentLocalDateTime = LocalDateTime.ofEpochSecond(
+                currentWeatherResponse.timestamp() + timezoneOffset,
+                0,
+                ZoneOffset.UTC
+        );
+        HourlyForecastDto currentHourlyForecast = new HourlyForecastDto(
+                currentLocalDateTime.format(formatter),
+                currentWeatherResponse.main().temp(),
+                currentWeatherResponse.weather().get(0).main(),
+                currentWeatherResponse.weather().get(0).description(),
+                currentWeatherResponse.weather().get(0).icon()
+        );
+
+        // 6-2. 예보 데이터를 HourlyForecastDto 리스트로 변환
+        List<HourlyForecastDto> forecastList = next24Hours.stream()
                 .map(forecast -> {
                     // dt(Unix timestamp) + timezone으로 현지 시간 계산
                     long localTimestamp = forecast.timestamp() + timezoneOffset;
@@ -81,10 +99,19 @@ public class WeatherService {
                 })
                 .toList();
 
-        // 7. 옷차림 추천
-        List<Double> hourlyTemperatures = next12Hours.stream()
-                .map(f -> f.main().temp())
-                .toList();
+        // 6-3. 현재 날씨를 첫 번째 요소로, 예보 데이터를 나머지로 결합
+        List<HourlyForecastDto> hourlyForecasts = new java.util.ArrayList<>();
+        hourlyForecasts.add(currentHourlyForecast);
+        hourlyForecasts.addAll(forecastList);
+
+        // 7. 옷차림 추천 - 현재 온도 포함
+        List<Double> hourlyTemperatures = new java.util.ArrayList<>();
+        hourlyTemperatures.add(currentWeatherResponse.main().temp());
+        hourlyTemperatures.addAll(
+                next12Hours.stream()
+                        .map(f -> f.main().temp())
+                        .toList()
+        );
 
         OutfitRecommendation outfitRecommendation = outfitRecommendationService.recommendOutfit(
                 weatherSummary.minTemperature(),
@@ -116,15 +143,25 @@ public class WeatherService {
 
     /**
      * 12시간 날씨 요약 생성 (최저/최고 온도, 코멘트)
+     * 현재 날씨 온도를 포함하여 계산
      */
-    private WeatherSummaryDto createWeatherSummary(List<ForecastItemDto> forecasts) {
-        double minTemp = forecasts.stream()
-                .mapToDouble(f -> f.main().temp())
+    private WeatherSummaryDto createWeatherSummary(List<ForecastItemDto> forecasts, double currentTemp) {
+        // 현재 온도를 포함한 온도 리스트 생성
+        List<Double> allTemperatures = new java.util.ArrayList<>();
+        allTemperatures.add(currentTemp);
+        allTemperatures.addAll(
+                forecasts.stream()
+                        .map(f -> f.main().temp())
+                        .toList()
+        );
+
+        double minTemp = allTemperatures.stream()
+                .mapToDouble(Double::doubleValue)
                 .min()
                 .orElse(0);
 
-        double maxTemp = forecasts.stream()
-                .mapToDouble(f -> f.main().temp())
+        double maxTemp = allTemperatures.stream()
+                .mapToDouble(Double::doubleValue)
                 .max()
                 .orElse(0);
 
