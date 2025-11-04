@@ -115,15 +115,27 @@ cd BE
 
 ## 6. 외부 API 연동
 
-애플리케이션은 두 개의 외부 API와 연동됩니다:
+애플리케이션은 세 개의 외부 API와 연동됩니다:
 
-1.  **OpenWeatherMap API**: 날씨 예보 데이터용
+1.  **OpenWeatherMap Current Weather API**: 실시간 현재 날씨 조회
+
+   - 클라이언트: `OpenWeatherClient` (weather/infrastructure/openweathermap/)
+   - 엔드포인트: `/data/2.5/weather`
+   - 메서드: `getCurrentWeather(double lat, double lon)`
+   - 역할: 사용자 조회 시점의 실시간 날씨 정보 제공
+   - 응답: `CurrentWeatherResponse` DTO
+   - `external.openweather.api-key` 속성을 통한 API 키 설정 필요
+
+2.  **OpenWeatherMap Forecast API**: 날씨 예보 데이터 조회
 
    - 클라이언트: `OpenWeatherClient` (weather/infrastructure/openweathermap/)
    - 엔드포인트: `/data/2.5/forecast`
+   - 메서드: `getForecast(double lat, double lon)`
+   - 역할: 5일간의 3시간 간격 예보 데이터 제공
+   - 응답: `OpenWeatherResponse` DTO
    - `external.openweather.api-key` 속성을 통한 API 키 설정 필요
 
-2.  **Geocoding API**: 도시 이름을 좌표로 변환
+3.  **Geocoding API**: 도시 이름을 좌표로 변환
 
    - 클라이언트: `GeoCodingClient` (weather/infrastructure/geocoding/)
    - 참고: 현재 OpenWeatherClient와 동일한 플레이스홀더(placeholder) 구현 상태임
@@ -133,6 +145,11 @@ cd BE
 ```yml
 external.openweather.api-key=YOUR_API_KEY
 ```
+
+**Current Weather API 통합 배경**:
+- Forecast API는 3시간 간격의 고정된 예보 시점(00:00, 03:00, 06:00 등)만 제공
+- 사용자 조회 시점과 예보 시점이 최대 3시간까지 차이날 수 있는 문제 발생
+- Current Weather API를 추가하여 실시간 현재 날씨를 제공함으로써 시간 불일치 문제 해결
 
 ## 7. 주요 구현 세부사항
 
