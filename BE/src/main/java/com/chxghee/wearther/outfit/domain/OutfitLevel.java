@@ -85,10 +85,12 @@ public enum OutfitLevel {
 
     /**
      * 온도에 해당하는 OutfitLevel 반환
+     * 온도는 반올림하여 정수로 변환 후 매칭 (예: 11.6°C → 12°C)
      */
     public static OutfitLevel fromTemperature(double temperature) {
+        int roundedTemp = (int) Math.round(temperature);
         return Arrays.stream(values())
-                .filter(level -> temperature >= level.minTemp && temperature <= level.maxTemp)
+                .filter(level -> roundedTemp >= level.minTemp && roundedTemp <= level.maxTemp)
                 .findFirst()
                 .orElse(LEVEL_4); // 기본값
     }
