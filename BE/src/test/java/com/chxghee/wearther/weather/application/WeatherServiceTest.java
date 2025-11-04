@@ -46,7 +46,31 @@ class WeatherServiceTest {
         String cityName = "Seoul";
         CityData cityData = new CityData("Seoul", 37.5665, 126.9780, "KR");
 
-        // Mock OpenWeatherMap API 응답 (24시간, 3시간 간격 = 8개)
+        // Mock Current Weather API 응답
+        MainDto currentMain = new MainDto(14.0, 13.5, 14.0, 14.0, 1013, 65);
+        WeatherDto currentWeatherDto = new WeatherDto(800, "Clear", "clear sky", "01d");
+        CoordinateData coord = new CoordinateData(37.5665, 126.9780);
+        WindDto wind = new WindDto(3.5, 270);
+        CloudsDto clouds = new CloudsDto(0);
+        SysDto sys = new SysDto(1, 8105, "KR", 1735603200L, 1735639200L);
+
+        CurrentWeatherResponse currentWeatherResponse = new CurrentWeatherResponse(
+                coord,
+                List.of(currentWeatherDto),
+                "stations",
+                currentMain,
+                10000,
+                wind,
+                clouds,
+                System.currentTimeMillis() / 1000,
+                sys,
+                32400,
+                1835848L,
+                "Seoul",
+                200
+        );
+
+        // Mock OpenWeatherMap Forecast API 응답 (24시간, 3시간 간격 = 8개)
         List<ForecastItemDto> forecastList = List.of(
                 createForecastItem(15.0, "Clear", "clear sky", "01d"),
                 createForecastItem(17.0, "Clear", "clear sky", "01d"),
@@ -63,6 +87,7 @@ class WeatherServiceTest {
         OpenWeatherResponse weatherResponse = new OpenWeatherResponse(forecastList, cityDto);
 
         when(geoCodingClient.getCoordinatesByCityName(anyString())).thenReturn(cityData);
+        when(openWeatherClient.getCurrentWeather(anyDouble(), anyDouble())).thenReturn(currentWeatherResponse);
         when(openWeatherClient.getForecast(anyDouble(), anyDouble())).thenReturn(weatherResponse);
 
         // Mock OutfitRecommendationService
@@ -79,11 +104,11 @@ class WeatherServiceTest {
         // Then
         assertThat(response).isNotNull();
         assertThat(response.currentWeather()).isNotNull();
-        assertThat(response.currentWeather().temperature()).isEqualTo(15.0);
+        assertThat(response.currentWeather().temperature()).isEqualTo(14.0); // 현재 날씨 API의 온도
         assertThat(response.weatherSummary()).isNotNull();
-        assertThat(response.weatherSummary().minTemperature()).isEqualTo(15.0);
+        assertThat(response.weatherSummary().minTemperature()).isEqualTo(14.0); // 현재 온도 포함
         assertThat(response.weatherSummary().maxTemperature()).isEqualTo(20.0);
-        assertThat(response.hourlyForecasts()).hasSize(8);
+        assertThat(response.hourlyForecasts()).hasSize(9); // 현재 날씨 + 예보 8개
 
         // 옷차림 추천 검증 (레벨별 구분)
         assertThat(response.outfit()).isNotNull();
