@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wearther - 날씨 & 옷차림 가이드</title>
+    <link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더: 도시 이름과 설정 버튼 -->
+        <header class="header">
+            <div class="location">
+                <span class="location-icon">📍</span>
+                <span id="city-name">서울</span>
+            </div>
+            <button class="settings-btn">⚙️</button>
+        </header>
+
+        <!-- 현재 날씨 섹션 -->
+        <section class="current-weather">
+            <div class="temperature-display">
+                <div id="current-temperature" class="current-temp">--°</div>
+                <div id="current-weather-icon" class="weather-icon">☀️</div>
+            </div>
+            <div id="current-weather-description" class="weather-description">--</div>
+        </section>
+
+        <!-- 날씨 요약 (최저/최고 기온 및 코멘트) -->
+        <section class="weather-summary">
+            <div class="temp-range">
+                <span>최고: <span id="max-temperature">--</span>° / 최저: <span id="min-temperature">--</span>°</span>
+            </div>
+            <div id="weather-comment" class="weather-comment">날씨 정보를 불러오는 중입니다...</div>
+        </section>
+
+        <!-- 시간대별 예보 (가로 스크롤) -->
+        <section class="hourly-forecast">
+            <div id="hourly-forecast-container" class="hourly-forecast-container">
+                <!-- TypeScript로 동적 생성 -->
+            </div>
+        </section>
+
+        <!-- 추천 옷차림 섹션 -->
+        <section class="outfit-section">
+            <h2 class="section-title">추천 옷차림</h2>
+            <div id="outfit-container" class="outfit-container">
+                <!-- TypeScript로 동적 생성 -->
+            </div>
+        </section>
+
+        <!-- 로딩 및 에러 메시지 -->
+        <div id="loading-message" class="message loading">
+            <div class="spinner"></div>
+            <p>날씨 정보를 불러오는 중...</p>
+        </div>
+        <div id="error-message" class="message error" style="display: none;">
+            <p>날씨 정보를 불러올 수 없습니다. 다시 시도해주세요.</p>
+        </div>
+    </div>
+
+    <script src="/js/home.js"></script>
+</body>
+</html>
