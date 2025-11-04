@@ -13,15 +13,13 @@ function getWeatherEmoji(weatherMain, hour = 12) {
     return emojiMap[weatherMain] || '☀️';
 }
 
-// UTC 시간을 한국 시간으로 변환
-function convertToKST(dateTimeStr) {
-    const utcDate = new Date(dateTimeStr);
-    return new Date(utcDate.getTime() + (9 * 60 * 60 * 1000));
-}
-
 // 시간 포맷팅 (HH시)
-function formatHour(date) {
-    return `${date.getHours()}시`;
+// dateTimeStr은 백엔드에서 이미 현지 시간으로 변환된 상태 (timezone 적용됨)
+function formatHour(dateTimeStr) {
+    // "yyyy-MM-dd HH:mm:ss" 형식에서 시간 추출
+    const timePart = dateTimeStr.split(' ')[1]; // "HH:mm:ss"
+    const hour = parseInt(timePart.split(':')[0], 10); // HH
+    return `${hour}시`;
 }
 
 // 한글 날씨 설명 변환
@@ -86,13 +84,15 @@ function renderHourlyForecasts(forecasts) {
     container.innerHTML = '';
 
     forecasts.forEach((forecast, index) => {
-        const kstDate = convertToKST(forecast.dateTime);
-        const hour = kstDate.getHours();
+        // dateTimeStr은 이미 현지 시간 (백엔드에서 timezone 적용됨)
+        const dateTimeStr = forecast.dateTime;
+        const timePart = dateTimeStr.split(' ')[1]; // "HH:mm:ss"
+        const hour = parseInt(timePart.split(':')[0], 10); // HH
 
         const forecastCard = document.createElement('div');
         forecastCard.className = 'forecast-card';
 
-        const timeLabel = index === 0 ? '지금' : formatHour(kstDate);
+        const timeLabel = index === 0 ? '지금' : formatHour(dateTimeStr);
 
         forecastCard.innerHTML = `
             <div class="forecast-time">${timeLabel}</div>
