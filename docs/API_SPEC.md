@@ -63,7 +63,7 @@ Wearther API는 실시간 날씨 정보와 온도별 옷차림 추천을 통합�
       "weatherDescription": "few clouds",
       "weatherIcon": "02d"
     }
-    // ... 24시간치 데이터 (3시간 간격, 총 8개)
+    // ... 현재 날씨 포함 총 9개 (현재 1개 + 예보 8개)
   ],
   "outfit": {
     "mainLevelKey": "LEVEL_5",
@@ -144,16 +144,16 @@ Wearther API는 실시간 날씨 정보와 온도별 옷차림 추천을 통합�
 
 | 필드 | 타입 | 설명 |
 |------|------|------|
-| `currentWeather` | Object | 현재 날씨 정보 |
+| `currentWeather` | Object | 현재 날씨 정보 (실시간 Current Weather API) |
 | `currentWeather.temperature` | Double | 현재 기온 (°C) |
 | `currentWeather.weatherMain` | String | 날씨 상태 (Clear, Clouds, Rain 등) |
 | `currentWeather.weatherDescription` | String | 날씨 상세 설명 |
 | `currentWeather.weatherIcon` | String | 날씨 아이콘 코드 |
-| `weatherSummary` | Object | 12시간 날씨 요약 |
-| `weatherSummary.minTemperature` | Double | 12시간 내 최저 기온 (°C) |
-| `weatherSummary.maxTemperature` | Double | 12시간 내 최고 기온 (°C) |
+| `weatherSummary` | Object | 12시간 날씨 요약 (현재 온도 포함) |
+| `weatherSummary.minTemperature` | Double | 12시간 내 최저 기온 (°C, 현재 온도 포함) |
+| `weatherSummary.maxTemperature` | Double | 12시간 내 최고 기온 (°C, 현재 온도 포함) |
 | `weatherSummary.comment` | String | 날씨 분석 코멘트 |
-| `hourlyForecasts` | Array | 시간대별 예보 (24시간, 3시간 간격) |
+| `hourlyForecasts` | Array | 시간대별 예보 (현재 시각 + 24시간 예보, 총 9개) |
 | `hourlyForecasts[].dateTime` | String | 예보 시간 (yyyy-MM-dd HH:mm:ss) |
 | `hourlyForecasts[].temperature` | Double | 예상 기온 (°C) |
 | `hourlyForecasts[].weatherMain` | String | 날씨 상태 |
@@ -315,7 +315,8 @@ WeatherOutfitResponse response = restTemplate.getForObject(url, WeatherOutfitRes
 
 ### 외부 API 의존성
 - **OpenWeatherMap Geocoding API**: 도시 이름 → 좌표 변환
-- **OpenWeatherMap 5 Day Forecast API**: 날씨 예보 조회
+- **OpenWeatherMap Current Weather API**: 실시간 현재 날씨 조회
+- **OpenWeatherMap 5 Day Forecast API**: 날씨 예보 조회 (3시간 간격)
 - API 키는 서버 환경변수 `WEATHER_API_KEY`로 관리됩니다.
 
 ### 응답 시간
@@ -327,8 +328,9 @@ WeatherOutfitResponse response = restTemplate.getForObject(url, WeatherOutfitRes
 - 향후 버전에서 Redis 등을 활용한 캐싱 기능 추가 예정입니다.
 
 ### 데이터 갱신 주기
-- OpenWeatherMap API는 3시간 간격으로 데이터를 제공합니다.
-- 실시간 조회 시마다 최신 예보 데이터를 반환합니다.
+- **현재 날씨**: Current Weather API를 통해 실시간 데이터 제공
+- **예보 데이터**: Forecast API는 3시간 간격으로 제공
+- 실시간 조회 시마다 최신 현재 날씨 및 예보 데이터를 반환합니다.
 
 ---
 
@@ -336,5 +338,6 @@ WeatherOutfitResponse response = restTemplate.getForObject(url, WeatherOutfitRes
 
 | 버전 | 날짜 | 변경 내용 |
 |------|------|----------|
+| v1.2 | 2025-01-04 | Current Weather API 통합 - 실시간 현재 날씨 제공 및 시간 불일치 문제 해결 |
 | v1.1 | 2025-01-03 | 옷차림 응답 구조 변경 - 레벨별 구분 제공 (outfitByLevel) |
 | v1.0 | 2025-01-03 | 초기 버전 작성 - GET /api/v1/weather-outfit 엔드포인트 |
