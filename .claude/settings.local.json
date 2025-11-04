@@ -5,7 +5,8 @@
       "Bash(./gradlew clean build:*)",
       "Bash(./gradlew test:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []
